@@ -1,0 +1,80 @@
+name: "Tests"
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  validate:
+    name: "validate"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Terraform CLI
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 0.14.11
+      - name: Configure Git permissions
+        run: |
+          git config --local --remove-section http."https://github.com/"
+          git config --global url."https://${CA_GITHUB_USER}:${CA_GITHUB_ACCESS_TOKEN}@github.com/bancodebogota".insteadOf "https://github.com/bancodebogota"
+        env:
+          CA_GITHUB_USER: ${{ secrets.CA_GITHUB_USER }}
+          CA_GITHUB_ACCESS_TOKEN: ${{ secrets.CA_GITHUB_ACCESS_TOKEN }}
+      - name: Check format
+        id: fmt
+        run: terraform fmt -check -recursive
+        continue-on-error: true
+      - name: Initialize
+        id: init
+        run: |
+          mv providers.tf.example providers.tf
+          terraform init
+      - name: Validate
+        id: validate
+        run: terraform validate
+      - name: Run Checkov action
+        id: checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: "."
+          quiet: false # optional: display only failed checks
+          soft_fail: false
+          framework: terraform # optional: run only on a specific infrastructure {cloudformation,terraform,kubernetes,all}
+          output_format: json # optional: the output format, one of: cli, json, junitxml, github_failed_only
+
+  check-files:
+    name: check files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Checkout bancodebogota/bbog-dig-aws-tf-actions
+        uses: actions/checkout@v2
+        with:
+          repository: bancodebogota/bbog-dig-aws-tf-actions
+          ref: v2.0.0
+          token: ${{ secrets.CA_GITHUB_ACCESS_TOKEN }}
+          persist-credentials: false
+          path: ./.github/actions/bbog-dig-aws-tf-actions
+      - uses: ./.github/actions/bbog-dig-aws-tf-actions/file-structure-checker
+        with:
+          project-type: "mod"
+          target-dir: $GITHUB_WORKSPACE
+
+  tfsuit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run tfsuit
+        id: tfsuit
+        uses: josdagaro/tfsuit@v0.6.3
+        with:
+          dir: "."
+          config_json_path: tfsuit.json
+          fail_on_not_compliant: "true"
+          docs_link: "https://bancodebogotaconfluence.atlassian.net/wiki/spaces/LABDIGITAL/pages/1708622329/Standards+Naming+Conventions+For+IaC"
