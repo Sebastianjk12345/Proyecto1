@@ -19,13 +19,6 @@ jobs:
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: 0.14.11
-      - name: Configure Git permissions
-        run: |
-          git config --local --remove-section http."https://github.com/"
-          git config --global url."https://${CA_GITHUB_USER}:${CA_GITHUB_ACCESS_TOKEN}@github.com/bancodebogota".insteadOf "https://github.com/bancodebogota"
-        env:
-          CA_GITHUB_USER: ${{ secrets.CA_GITHUB_USER }}
-          CA_GITHUB_ACCESS_TOKEN: ${{ secrets.CA_GITHUB_ACCESS_TOKEN }}
       - name: Check format
         id: fmt
         run: terraform fmt -check -recursive
