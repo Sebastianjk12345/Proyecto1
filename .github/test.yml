@@ -36,11 +36,10 @@ jobs:
         uses: bridgecrewio/checkov-action@master
         with:
           directory: "."
-          quiet: false # optional: display only failed checks
+          quiet: false
           soft_fail: false
-          framework: terraform # optional: run only on a specific infrastructure {cloudformation,terraform,kubernetes,all}
-          output_format: json # optional: the output format, one of: cli, json, junitxml, github_failed_only
-
+          framework: terraform 
+          output_format: json 
   tfsuit:
     runs-on: ubuntu-latest
     steps:
@@ -52,4 +51,3 @@ jobs:
           dir: "."
           config_json_path: tfsuit.json
           fail_on_not_compliant: "true"
-          docs_link: "https://bancodebogotaconfluence.atlassian.net/wiki/spaces/LABDIGITAL/pages/1708622329/Standards+Naming+Conventions+For+IaC"
