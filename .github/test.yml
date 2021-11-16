@@ -41,24 +41,6 @@ jobs:
           framework: terraform # optional: run only on a specific infrastructure {cloudformation,terraform,kubernetes,all}
           output_format: json # optional: the output format, one of: cli, json, junitxml, github_failed_only
 
-  check-files:
-    name: check files
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Checkout bancodebogota/bbog-dig-aws-tf-actions
-        uses: actions/checkout@v2
-        with:
-          repository: bancodebogota/bbog-dig-aws-tf-actions
-          ref: v2.0.0
-          token: ${{ secrets.CA_GITHUB_ACCESS_TOKEN }}
-          persist-credentials: false
-          path: ./.github/actions/bbog-dig-aws-tf-actions
-      - uses: ./.github/actions/bbog-dig-aws-tf-actions/file-structure-checker
-        with:
-          project-type: "mod"
-          target-dir: $GITHUB_WORKSPACE
-
   tfsuit:
     runs-on: ubuntu-latest
     steps:
